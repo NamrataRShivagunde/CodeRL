@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     model_path = args.model_path  # Replace with the actual path
     model = T5ForConditionalGeneration.from_pretrained(model_path)
-    tokenizer = T5Tokenizer.from_pretrained("codet5-base")
+    tokenizer = T5Tokenizer.from_pretrained("Salesforce/codet5-base")
 
     model.eval()
     interact_with_model(model, tokenizer)
