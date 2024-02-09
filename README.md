@@ -179,7 +179,7 @@ Once the programs are tested, we can used their test outcomes as annotations to 
 
 We created `scripts/train_critic.sh` and `scripts/train_critic_deepspeed.sh` to train a critic using generated programs. You can directly run this file by configuring the following parameters:
 
-| **Parameters** |                                                                                **Description**                                                                               |                  **Example Values**                 |
+| **Parameters**  |                                                                                **Description**                                                                               |                  **Example Values**                 |
 |:--------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------:|
 | `batch-size-per-replica`      | Number of training samples per GPU device                                                                                                                               | 8                                      |
 | `grad-acc-steps`    | Gradient accumulation steps                                                                                                                                            | 1                              |
