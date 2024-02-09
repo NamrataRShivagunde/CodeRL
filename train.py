@@ -129,7 +129,7 @@ def get_dataset(args):
         tuning_mode=args.tuning_mode,
         relative_returns=args.relative_returns
     )
-
+    print(train_data[0])
     return train_data
 
 
