@@ -1,7 +1,7 @@
 import argparse
 import torch
 import transformers
-from transformers import T5Tokenizer
+from transformers import RobertaTokenizer
 
 def interact_with_model(model, tokenizer):
     while True:
@@ -25,7 +25,7 @@ def main():
             args.model_path,
             tuning_mode="critic", 
             clone_rl_head=False) 
-    tokenizer = T5Tokenizer.from_pretrained("Salesforce/codet5-base")
+    tokenizer = RobertaTokenizer.from_pretrained("Salesforce/codet5-base")
 
     model.eval()
     interact_with_model(model, tokenizer)
