@@ -1,6 +1,7 @@
 import argparse
 import torch
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+import transformers
+from transformers import T5Tokenizer
 
 def interact_with_model(model, tokenizer):
     while True:
@@ -20,8 +21,10 @@ def main():
     parser.add_argument("--model_path", type=str, required=True, help="Path to the trained T5 model")
 
     args = parser.parse_args()
-    model_path = args.model_path  # Replace with the actual path
-    model = T5ForConditionalGeneration.from_pretrained(model_path)
+    model = transformers.T5ForConditionalGeneration.from_pretrained(
+            args.model_path,
+            tuning_mode="critic", 
+            clone_rl_head=False) 
     tokenizer = T5Tokenizer.from_pretrained("Salesforce/codet5-base")
 
     model.eval()
