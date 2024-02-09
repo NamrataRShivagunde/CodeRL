@@ -99,8 +99,9 @@ def run_training(args, train_data):
     
     trainer.train()
     
-    if args.local_rank == 0:
-        model.save_pretrained(os.path.join(args.save_dir, "final_checkpoint"))
+    # if args.local_rank == 0:
+    #     
+    model.save_pretrained(os.path.join(args.save_dir, "final_checkpoint"))
 
 
 def get_dataset(args): 
