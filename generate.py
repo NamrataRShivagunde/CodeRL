@@ -199,13 +199,15 @@ def main(args):
                         temperature=args.temperature, 
                         max_length=args.max_len, 
                         num_return_sequences=args.num_seqs_per_iter,
-                        top_p=0.95)                    
+                        top_p=0.95) 
+                    print(output_ids)                   
 
                     for output_id in output_ids: 
                         output_programs.append(tokenizer.decode(output_id, skip_special_tokens=True))
 
                 saved_codes = {}
                 saved_codes[problem_id] = {'code': output_programs, 'prompt': input_text}
+                print(output_programs)
 
                 codes_loc = os.path.join(args.output_path, f"{problem_id}.json")
                 with open(codes_loc, "w") as f:
