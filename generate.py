@@ -108,7 +108,8 @@ def main(args):
     problems = problems[start:end]
     
     # Set up model
-    tokenizer = RobertaTokenizer.from_pretrained('Salesforce/codet5-base', cache_dir=args.tokenizer_path)
+    tokenizer = RobertaTokenizer.from_pretrained('Salesforce/codet5-base')
+    # tokenizer = RobertaTokenizer.from_pretrained('Salesforce/codet5-base', cache_dir=args.tokenizer_path)
     print("Loading model from {}...".format(args.model_path))
     if args.critic_scores:
         model = T5ForConditionalGeneration.from_pretrained(args.model_path, tuning_mode='critic') 

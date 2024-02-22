@@ -269,3 +269,13 @@ The code is released under BSD 3-Clause - see `LICENSE.txt` for details.
 
 This code is developed from other open source projects: including [APPS](https://github.com/hendrycks/apps/), [HumanEval](https://github.com/openai/human-eval), and [transformers](https://github.com/huggingface/transformers). We thank the original contributors of these works for open-sourcing their valuable source codes. 
 
+
+
+CUDA_VISIBLE_DEVICES=0 python generate.py \
+    --model_path Salesforce/codet5-large \
+    --tokenizer_path Salesforce/codet5-large \
+    --test_path data/APPS/training/  \
+    --output_path outputs/codes/ \
+    -s 0 -e 1 \
+    --num_seqs 10 --num_seqs_per_iter 10 \
+    --temperature 0.6 
