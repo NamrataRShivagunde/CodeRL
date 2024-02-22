@@ -91,6 +91,7 @@ def main(args):
     print(pprint.pformat(argsdict))
 
     original_problems = glob.glob(args.test_path + '/*')
+    print(len(original_problems))
     problems = sorted(original_problems) 
 
     if not os.path.exists(args.output_path):
