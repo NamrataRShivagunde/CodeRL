@@ -114,6 +114,7 @@ def main(args):
         model = T5ForConditionalGeneration.from_pretrained(args.model_path, tuning_mode='critic') 
     else:
         model = T5ForConditionalGeneration.from_pretrained(args.model_path) 
+    
         
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)

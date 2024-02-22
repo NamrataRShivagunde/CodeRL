@@ -4,8 +4,8 @@
 ## SPDX-License-Identifier: BSD-3-Clause
 ## For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 ##
-model_path=Salesforce/codet5-large-ntp-py
-tokenizer_path=Salesforce/codet5-large-ntp-py
+model_path=Salesforce/codet5-base
+tokenizer_path=Salesforce/codet5-base
 test_path=data/APPS/test/ 
 
 start=0
