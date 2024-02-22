@@ -274,8 +274,8 @@ This code is developed from other open source projects: including [APPS](https:/
 CUDA_VISIBLE_DEVICES=0 python generate.py \
     --model_path Salesforce/codet5-large \
     --tokenizer_path Salesforce/codet5-large \
-    --test_path data/APPS/training/  \
-    --output_path outputs/codes/ \
-    -s 0 -e 1 \
-    --num_seqs 10 --num_seqs_per_iter 10 \
+    --test_path data/APPS/train_all  \
+    --output_path outputs/codes_train_all/ \
+    -s 0 -e 10 \
+    --num_seqs 20 --num_seqs_per_iter 50 \
     --temperature 0.6 
