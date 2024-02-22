@@ -106,6 +106,8 @@ def main(args):
     else:
         end = args.end
     problems = problems[start:end]
+
+    print(len(problems))
     
     # Set up model
     tokenizer = RobertaTokenizer.from_pretrained('Salesforce/codet5-base')
