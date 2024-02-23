@@ -159,7 +159,7 @@ def main(args):
         else:
             input_text = generate_prompt(args, test_case_path, prompt_path, solutions_path, 
                                           tokenizer, starter_path)
-
+        print(input_text)
         with torch.no_grad():
             if args.critic_scores:
                 text_tensor = torch.tensor(input_texts).to(device)
@@ -200,7 +200,7 @@ def main(args):
                         max_length=args.max_len, 
                         num_return_sequences=args.num_seqs_per_iter,
                         top_p=0.95) 
-                    print(output_ids)                   
+                                   
 
                     for output_id in output_ids: 
                         output_programs.append(tokenizer.decode(output_id, skip_special_tokens=True))

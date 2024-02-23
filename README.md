@@ -277,5 +277,5 @@ CUDA_VISIBLE_DEVICES=0 python generate.py \
     --test_path data/APPS/train_all  \
     --output_path outputs/codes_train_all/ \
     -s 0 -e 10 \
-    --num_seqs 20 --num_seqs_per_iter 50 \
+    --num_seqs 20 --num_seqs_per_iter 20 \
     --temperature 0.6 

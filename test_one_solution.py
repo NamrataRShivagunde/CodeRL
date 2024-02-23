@@ -67,6 +67,9 @@ def eval_and_save_problems(args):
         try:
             curr_results, curr_errors, _, curr_sol = run_test(prob_path=problem, test=o, debug=args.debug, 
                                           example_tests=args.example_tests)
+            
+            print("curr_results", curr_results)
+            print("current_error", curr_errors)
 
             curr_errors = [(e, traceback.format_tb(e.__traceback__)) if e is not None else e for e in curr_errors]
             fixed = []
