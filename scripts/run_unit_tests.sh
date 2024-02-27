@@ -5,9 +5,9 @@
 ## SPDX-License-Identifier: BSD-3-Clause
 ## For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 ## '''##
-code_path=outputs/codes_train_all/
-output_path=outputs/train_all_results/
-test_path=data/APPS/train_all/
+code_path=outputs/codes_train_all_samples/
+output_path=outputs/train_all_results_samples/
+test_path=data/APPS/train_all_samples/
 
 example_tests=0 # 0: run hidden unit tests; 1: run example unit tests 
 start=0
