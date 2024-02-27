@@ -168,6 +168,9 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
     elif example_tests: 
         which_type = CODE_TYPE.standard_input  # assuming this method type 
         method_name = None
+
+    print("which_type", which_type)
+    print("method_name", method_name)
     
     if example_tests:
         if os.path.exists(os.path.join(root, "example_input_output.json")):
@@ -177,6 +180,9 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
                     return [], [], [], None 
         else:
             return [], [], [], None
+        
+    print("in_outs", in_outs)
+    print("example_tests", example_tests)
     
     if debug:
         print(f"loaded json = {datetime.now().time()}")
@@ -227,6 +233,8 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
                 else:
                     new_test.append(x + "\n")
             tmp_test = new_test
+
+            print("tmp_test", tmp_test)
             
             new_test = ""
             started = False
@@ -242,7 +250,11 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
                     new_test += i
             tmp_test = new_test
 
+            print("tmp_test v2", tmp_test)
+
             sol += tmp_test
+
+            print("sol", sol)
             if debug:
                 print(f"sol = {sol}")
                 # print(f"{o}") 
@@ -250,6 +262,7 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
             signal.alarm(timeout)
             try:
                 tmp_sol = RuntimeModule.from_string("tmp_sol", "", sol)
+                print("tmp_sol", tmp_sol)
                 tmp = tmp_sol
                 signal.alarm(0)
             except Exception as e:
@@ -266,6 +279,8 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
 
         #try:
         method = getattr(tmp, method_name)  # get_attr second arg must be str
+        print("method", method)
+        print(len(in_outs["inputs"]))
         #except:
         if False:
             signal.alarm(0)
@@ -275,8 +290,9 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
             return results
     
         #for index, inputs in enumerate(in_outs["inputs"]):
+        print(in_outs["inputs"])
         for index, inputs in tqdm(enumerate(in_outs["inputs"]), total=len(in_outs["inputs"]), ncols=0, leave=False): 
-            
+            print("inputs", inputs)
             gc.collect()
             
             # JSON forces dictionaries to have string keys; this undoes this (assuming a singleton list)
@@ -353,200 +369,221 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
                     inputs = "\n".join(inputs)
                 if isinstance(in_outs['outputs'][index], list):
                     in_outs['outputs'][index] = "\n".join(in_outs['outputs'][index])
+                    print("in_outs['outputs'][index]", in_outs['outputs'][index])
 
-                with Capturing() as output:
-                    try:
-                        call_method(method, inputs)
-                        # reset the alarm
-                        signal.alarm(0)
-                        passed = True
-                    except Exception as e:
-                        # runtime error or took too long
-                        signal.alarm(0)
-                        if debug:
-                            print(f"Call-based runtime error or time limit exceeded error = {repr(e)}{e}")
-                        results.append(-1)
-                        errors.append(e) 
-                        outputs.append(None) 
-                        ## TESTING TRICK: exit loop if not pass a test case 
-                        return results, errors, outputs, sol
-                    
+                try:
+                    call_method(method, inputs)
+                    # reset the alarm
                     signal.alarm(0)
-                
-                if not passed:
+                    passed = True
+                except Exception as e:
+                    # runtime error or took too long
+                    signal.alarm(0)
                     if debug:
-                        nl = "\n"
-                        if not isinstance(inputs, list):
-                            print(f"not passed output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
-                        else:
-                            print(f"not passed output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
-                    continue
-
-                if passed and debug:
-                    print(f"==> output = {output}, test outputs = {in_outs['outputs'][index]}")
-
-                if custom_compare_(output, in_outs['outputs'][index]):
-                    tmp_result = True
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output)
-                    continue
-
-                # ground truth sequences are expressed as lists not tuples
-                if isinstance(output, tuple):
-                    output = list(output)
-
-                tmp_result = False
-                try:
-                    tmp_result = (output == [in_outs["outputs"][index]])
-                    if isinstance(in_outs["outputs"][index], list):
-                        tmp_result = tmp_result or (output == in_outs["outputs"][index])
-                        if isinstance(output[0], str):
-                            tmp_result = tmp_result or ([e.strip() for e in output] == in_outs["outputs"][index])
-                except Exception as e:
-                    if debug: 
-                        print(f"Failed check1 exception = {e}")
-                    pass
-
-                if tmp_result == True:  
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output)
-                    continue
-
-                # try one more time without \n
-                if isinstance(in_outs["outputs"][index], list):
-                    for tmp_index, i in enumerate(in_outs["outputs"][index]):
-                        in_outs["outputs"][index][tmp_index] = i.split("\n")
-                        in_outs["outputs"][index][tmp_index] = [x.strip() for x in in_outs["outputs"][index][tmp_index] if x]
-                else:
-                    in_outs["outputs"][index] = in_outs["outputs"][index].split("\n")
-                    in_outs["outputs"][index] = list(filter(len, in_outs["outputs"][index]))
-                    in_outs["outputs"][index] = list(map(lambda x:x.strip(), in_outs["outputs"][index]))
-
-                try:
-                    tmp_result = (output == [in_outs["outputs"][index]])
-                    if isinstance(in_outs["outputs"][index], list):
-                        tmp_result = tmp_result or (output == in_outs["outputs"][index])
-                except Exception as e:
-                    if debug: 
-                        print(f"Failed check2 exception = {e}")
-                    pass
-
-                if tmp_result == True:
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output)
-                    continue
-
-                # try by converting the output into a split up list too
-                if isinstance(output, list):
-                    output = list(filter(len, output))
-
-                if debug:
-                    nl = "\n"
-                    if not isinstance(inputs, list):
-                        print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
-                    else:
-                        print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
-                
-                if tmp_result == True:
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output)
-                    continue
-
-                try:
-                    tmp_result = (output == [in_outs["outputs"][index]])
-                    if isinstance(in_outs["outputs"][index], list):
-                        tmp_result = tmp_result or (output == in_outs["outputs"][index])
-                except Exception as e:
-                    if debug: 
-                        print(f"Failed check3 exception = {e}")
-                    pass
-
-                try:
-                    output_float = [float(e) for e in output]
-                    gt_float = [float(e) for e in in_outs['outputs'][index]]
-                    tmp_result = tmp_result or ((len(output_float) == len(gt_float)) and np.allclose(output_float, gt_float))
-                except Exception as e:
-                    pass
-                try:
-                    if isinstance(output[0], list):
-                        output_float = [float(e) for e in output[0]]
-                        gt_float = [float(e) for e in in_outs['outputs'][index][0]]
-                        tmp_result = tmp_result or ((len(output_float) == len(gt_float)) and np.allclose(output_float, gt_float))
-                except Exception as e:
-                    pass
-
-                if tmp_result == True:
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output_float)
-                    continue
-
-                # try by converting the stuff into split up list
-                if isinstance(in_outs["outputs"][index], list):
-                    for tmp_index, i in enumerate(in_outs["outputs"][index]):
-                        in_outs["outputs"][index][tmp_index] = set(i.split())
-                else:
-                    in_outs["outputs"][index] = set(in_outs["outputs"][index].split())
-
-                try:
-                    tmp_result = (output == in_outs["outputs"][index])
-                except Exception as e:
-                    if debug: 
-                        print(f"Failed check4 exception = {e}")
-                    continue
-
-                if tmp_result == True:
-                    results.append(tmp_result)
-                    errors.append(None)
-                    outputs.append(output)
-                    continue 
-
-                # try by converting the output into a split up list too
-                if isinstance(output, list):
-                    for tmp_index, i in enumerate(output):
-                        output[tmp_index] = i.split()
-                    output = list(filter(len, output))
-                    for tmp_index, i in enumerate(output):
-                        output[tmp_index] = set(i)    
-                else:
-                    output = output.split()
-                    output = list(filter(len, output))
-                    output = set(output)
-
-                try:
-                    tmp_result = (set(frozenset(s) for s in output) == set(frozenset(s) for s in in_outs["outputs"][index]))
-                except Exception as e:
-                    if debug: 
-                        print(f"Failed check5 exception = {e}")
-
-                # if they are all numbers, round so that similar numbers are treated as identical
-                try:
-                    tmp_result = tmp_result or (set(frozenset(round(float(t),3) for t in s) for s in output) ==\
-                        set(frozenset(round(float(t),3) for t in s) for s in in_outs["outputs"][index]))
-                except Exception as e:
-                    if debug: print(f"Failed check6 exception = {e}")
-                
-                if tmp_result == True and debug:
-                    print("PASSED")
- 
-                results.append(tmp_result)
-                errors.append(None)
-                outputs.append(output)
-            
-                if tmp_result != True:
+                        print(f"Call-based runtime error or time limit exceeded error = {repr(e)}{e}")
+                    results.append(-1)
+                    errors.append(e) 
+                    outputs.append(None) 
                     ## TESTING TRICK: exit loop if not pass a test case 
                     return results, errors, outputs, sol
+
+                # Print the captured output
+                print("Captured Output:")
+                print("".join(output))
+
+                # with Capturing() as output:
+                #     try:
+                #         call_method(method, inputs)
+                #         # reset the alarm
+                #         signal.alarm(0)
+                #         passed = True
+                #     except Exception as e:
+                #         # runtime error or took too long
+                #         signal.alarm(0)
+                #         if debug:
+                #             print(f"Call-based runtime error or time limit exceeded error = {repr(e)}{e}")
+                #         results.append(-1)
+                #         errors.append(e) 
+                #         outputs.append(None) 
+                #         ## TESTING TRICK: exit loop if not pass a test case 
+                #         return results, errors, outputs, sol
+                    
+                #     signal.alarm(0)
                 
-                if debug:
-                    nl = "\n"
-                    if not isinstance(inputs, list):
-                        print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
-                    else:
-                        print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
+            #     if not passed:
+            #         if debug:
+            #             nl = "\n"
+            #             if not isinstance(inputs, list):
+            #                 print(f"not passed output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
+            #             else:
+            #                 print(f"not passed output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
+            #         continue
+
+            #     if passed and debug:
+            #         print(f"==> output = {output}, test outputs = {in_outs['outputs'][index]}")
+
+            #     if custom_compare_(output, in_outs['outputs'][index]):
+            #         tmp_result = True
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output)
+            #         continue
+
+            #     # ground truth sequences are expressed as lists not tuples
+            #     if isinstance(output, tuple):
+            #         output = list(output)
+
+            #     tmp_result = False
+            #     try:
+            #         tmp_result = (output == [in_outs["outputs"][index]])
+            #         if isinstance(in_outs["outputs"][index], list):
+            #             tmp_result = tmp_result or (output == in_outs["outputs"][index])
+            #             if isinstance(output[0], str):
+            #                 tmp_result = tmp_result or ([e.strip() for e in output] == in_outs["outputs"][index])
+            #     except Exception as e:
+            #         if debug: 
+            #             print(f"Failed check1 exception = {e}")
+            #         pass
+
+            #     if tmp_result == True:  
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output)
+            #         continue
+
+            #     # try one more time without \n
+            #     if isinstance(in_outs["outputs"][index], list):
+            #         for tmp_index, i in enumerate(in_outs["outputs"][index]):
+            #             in_outs["outputs"][index][tmp_index] = i.split("\n")
+            #             in_outs["outputs"][index][tmp_index] = [x.strip() for x in in_outs["outputs"][index][tmp_index] if x]
+            #     else:
+            #         in_outs["outputs"][index] = in_outs["outputs"][index].split("\n")
+            #         in_outs["outputs"][index] = list(filter(len, in_outs["outputs"][index]))
+            #         in_outs["outputs"][index] = list(map(lambda x:x.strip(), in_outs["outputs"][index]))
+
+            #     try:
+            #         tmp_result = (output == [in_outs["outputs"][index]])
+            #         if isinstance(in_outs["outputs"][index], list):
+            #             tmp_result = tmp_result or (output == in_outs["outputs"][index])
+            #     except Exception as e:
+            #         if debug: 
+            #             print(f"Failed check2 exception = {e}")
+            #         pass
+
+            #     if tmp_result == True:
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output)
+            #         continue
+
+            #     # try by converting the output into a split up list too
+            #     if isinstance(output, list):
+            #         output = list(filter(len, output))
+
+            #     if debug:
+            #         nl = "\n"
+            #         if not isinstance(inputs, list):
+            #             print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
+            #         else:
+            #             print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
+                
+            #     if tmp_result == True:
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output)
+            #         continue
+
+            #     try:
+            #         tmp_result = (output == [in_outs["outputs"][index]])
+            #         if isinstance(in_outs["outputs"][index], list):
+            #             tmp_result = tmp_result or (output == in_outs["outputs"][index])
+            #     except Exception as e:
+            #         if debug: 
+            #             print(f"Failed check3 exception = {e}")
+            #         pass
+
+            #     try:
+            #         output_float = [float(e) for e in output]
+            #         gt_float = [float(e) for e in in_outs['outputs'][index]]
+            #         tmp_result = tmp_result or ((len(output_float) == len(gt_float)) and np.allclose(output_float, gt_float))
+            #     except Exception as e:
+            #         pass
+            #     try:
+            #         if isinstance(output[0], list):
+            #             output_float = [float(e) for e in output[0]]
+            #             gt_float = [float(e) for e in in_outs['outputs'][index][0]]
+            #             tmp_result = tmp_result or ((len(output_float) == len(gt_float)) and np.allclose(output_float, gt_float))
+            #     except Exception as e:
+            #         pass
+
+            #     if tmp_result == True:
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output_float)
+            #         continue
+
+            #     # try by converting the stuff into split up list
+            #     if isinstance(in_outs["outputs"][index], list):
+            #         for tmp_index, i in enumerate(in_outs["outputs"][index]):
+            #             in_outs["outputs"][index][tmp_index] = set(i.split())
+            #     else:
+            #         in_outs["outputs"][index] = set(in_outs["outputs"][index].split())
+
+            #     try:
+            #         tmp_result = (output == in_outs["outputs"][index])
+            #     except Exception as e:
+            #         if debug: 
+            #             print(f"Failed check4 exception = {e}")
+            #         continue
+
+            #     if tmp_result == True:
+            #         results.append(tmp_result)
+            #         errors.append(None)
+            #         outputs.append(output)
+            #         continue 
+
+            #     # try by converting the output into a split up list too
+            #     if isinstance(output, list):
+            #         for tmp_index, i in enumerate(output):
+            #             output[tmp_index] = i.split()
+            #         output = list(filter(len, output))
+            #         for tmp_index, i in enumerate(output):
+            #             output[tmp_index] = set(i)    
+            #     else:
+            #         output = output.split()
+            #         output = list(filter(len, output))
+            #         output = set(output)
+
+            #     try:
+            #         tmp_result = (set(frozenset(s) for s in output) == set(frozenset(s) for s in in_outs["outputs"][index]))
+            #     except Exception as e:
+            #         if debug: 
+            #             print(f"Failed check5 exception = {e}")
+
+            #     # if they are all numbers, round so that similar numbers are treated as identical
+            #     try:
+            #         tmp_result = tmp_result or (set(frozenset(round(float(t),3) for t in s) for s in output) ==\
+            #             set(frozenset(round(float(t),3) for t in s) for s in in_outs["outputs"][index]))
+            #     except Exception as e:
+            #         if debug: print(f"Failed check6 exception = {e}")
+                
+            #     if tmp_result == True and debug:
+            #         print("PASSED")
+ 
+            #     results.append(tmp_result)
+            #     errors.append(None)
+            #     outputs.append(output)
+            
+            #     if tmp_result != True:
+            #         ## TESTING TRICK: exit loop if not pass a test case 
+            #         return results, errors, outputs, sol
+                
+            #     if debug:
+            #         nl = "\n"
+            #         if not isinstance(inputs, list):
+            #             print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs.replace(nl,' new-line ')}, {type(inputs)}, {output == [in_outs['outputs'][index]]}")
+            #         else:
+            #             print(f"output = {output}, test outputs = {in_outs['outputs'][index]}, inputs = {inputs}, {type(inputs)}, {output == [in_outs['outputs'][index]]}") 
 
 
     return results, errors, outputs, sol
