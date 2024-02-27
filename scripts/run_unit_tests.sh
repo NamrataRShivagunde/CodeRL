@@ -11,7 +11,7 @@ test_path=data/APPS/train_all_samples/
 
 example_tests=0 # 0: run hidden unit tests; 1: run example unit tests 
 start=0
-end=1
+end=5000
 threads=10
 
 if [ ! -d $output_path ] 
