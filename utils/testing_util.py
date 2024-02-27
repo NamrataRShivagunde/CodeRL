@@ -371,26 +371,6 @@ def run_test(prob_path:str=None, problem_list:List[str]=None, prob_index:int=Non
                     in_outs['outputs'][index] = "\n".join(in_outs['outputs'][index])
                     print("in_outs['outputs'][index]", in_outs['outputs'][index])
 
-                try:
-                    call_method(method, inputs)
-                    # reset the alarm
-                    signal.alarm(0)
-                    passed = True
-                except Exception as e:
-                    # runtime error or took too long
-                    signal.alarm(0)
-                    if debug:
-                        print(f"Call-based runtime error or time limit exceeded error = {repr(e)}{e}")
-                    results.append(-1)
-                    errors.append(e) 
-                    outputs.append(None) 
-                    ## TESTING TRICK: exit loop if not pass a test case 
-                    return results, errors, outputs, sol
-
-                # Print the captured output
-                print("Captured Output:")
-                print("".join(output))
-
                 # with Capturing() as output:
                 #     try:
                 #         call_method(method, inputs)
